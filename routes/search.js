@@ -4,32 +4,19 @@ import ProductUS from "../models/ProductUS.js";
 
 const router = express.Router();
 
-function getModel(region) {
-  return region === "us" ? ProductUS : ProductIN;
-}
-
-// ------------------------------
-// SEARCH FROM DATABASE ONLY
-// ------------------------------
+// Search products ONLY from MongoDB
 router.get("/", async (req, res) => {
   const { q = "", region = "in" } = req.query;
 
-  if (!q.trim()) {
-    return res.json([]);
-  }
+  if (!q.trim()) return res.json([]);
 
-  const Model = getModel(region);
+  const Model = region === "us" ? ProductUS : ProductIN;
 
-  // Simple text search
-  const items = await Model.find({
+  const results = await Model.find({
     title: { $regex: q, $options: "i" }
-  })
-  .limit(50);
+  }).limit(50);
 
-  res.json(items);
+  return res.json(results);
 });
-
-export default router;
-
 
 export default router;
