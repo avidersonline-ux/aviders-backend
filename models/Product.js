@@ -1,17 +1,31 @@
 import mongoose from "mongoose";
 
-const ProductSchema = new mongoose.Schema({
-  id: { type: String, required: true },
-  title: String,
-  brand: String,
-  image: String,
-  price: Number,
-  mrp: Number,
-  currency: String,
-  category: String,
-  source: String,
-  affiliateUrl: String,
-  updated_at: Date,
-});
+const ProductSchema = new mongoose.Schema(
+  {
+    id: String,
+    title: String,
+    brand: String,
+    price: Number,
+    mrp: Number,
+    currency: String,
+    category: String,
+    stock: String,
+    rating: Number,
+    reviews: Number,
+
+    image: String,
+    images: [String],
+
+    bought_last_month: Number,
+    sponsored: Boolean,
+    delivery: Array,
+
+    source: String,   // amazon_in or amazon_us
+    affiliateUrl: String,
+
+    updated_at: Date,
+  },
+  { collection: "products_in" } // temporary default
+);
 
 export default mongoose.model("Product", ProductSchema);
