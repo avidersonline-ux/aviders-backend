@@ -1,48 +1,33 @@
 import express from "express";
-import mongoose from "mongoose";
+import ProductIN from "../models/ProductIN.js";
+import ProductUS from "../models/ProductUS.js";
 
 const router = express.Router();
 
-// dynamic model loader
 function getModel(region) {
-  const collectionName = region === "us" ? "products_us" : "products_in";
-
-  return mongoose.model(
-    `Product_${region}`,
-    new mongoose.Schema({}, { strict: false, collection: collectionName })
-  );
+  return region === "us" ? ProductUS : ProductIN;
 }
 
-// GET list
-router.get("/:region", async (req, res) => {
-  const { region } = req.params;
-  const { q, category, limit = 50 } = req.query;
+// Get product list
+router.get("/", async (req, res) => {
+  const { category, region = "in" } = req.query;
 
-  const Model = getModel(region.toLowerCase());
+  const Model = getModel(region);
 
-  let filter = {};
+  const filter = {};
+  if (category) filter.category = category;
 
-  if (q) {
-    filter.title = { $regex: q, $options: "i" };
-  }
-  if (category) {
-    filter.category = category;
-  }
-
-  const items = await Model.find(filter)
-    .sort({ updated_at: -1 })
-    .limit(Number(limit));
-
+  const items = await Model.find(filter).limit(100);
   res.json(items);
 });
 
-// GET detail
-router.get("/:region/:id", async (req, res) => {
-  const { region, id } = req.params;
-  const Model = getModel(region.toLowerCase());
+// Get single product
+router.get("/:id", async (req, res) => {
+  const { region = "in" } = req.query;
 
-  const item = await Model.findOne({ id });
+  const Model = getModel(region);
 
+  const item = await Model.findOne({ id: req.params.id });
   res.json(item);
 });
 
