@@ -1,75 +1,49 @@
 import express from "express";
-import ProductIN from "../models/ProductIN.js";
-import ProductUS from "../models/ProductUS.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
-// Helper: choose model based on region
+// dynamic model loader
 function getModel(region) {
-  return region === "us" ? ProductUS : ProductIN;
+  const collectionName = region === "us" ? "products_us" : "products_in";
+
+  return mongoose.model(
+    `Product_${region}`,
+    new mongoose.Schema({}, { strict: false, collection: collectionName })
+  );
 }
 
-/**
- * GET /products/in or /products/us
- * Optional:
- *  ?q=iphone
- *  ?category=smartphones
- *  ?page=1
- *  ?limit=20
- */
+// GET list
 router.get("/:region", async (req, res) => {
-  try {
-    const { region } = req.params;
-    const Model = getModel(region.toLowerCase());
+  const { region } = req.params;
+  const { q, category, limit = 50 } = req.query;
 
-    if (!Model) return res.status(400).json({ error: "Invalid region" });
+  const Model = getModel(region.toLowerCase());
 
-    const { q, category, page = 1, limit = 20 } = req.query;
-    let filter = {};
+  let filter = {};
 
-    // Search
-    if (q) {
-      filter.title = { $regex: q, $options: "i" };
-    }
-
-    // Filter by category
-    if (category) {
-      filter.category = category;
-    }
-
-    const skip = (Number(page) - 1) * Number(limit);
-
-    const items = await Model.find(filter)
-      .sort({ updated_at: -1 })
-      .skip(skip)
-      .limit(Number(limit));
-
-    res.json(items);
-  } catch (err) {
-    console.error("PRODUCTS API ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+  if (q) {
+    filter.title = { $regex: q, $options: "i" };
   }
+  if (category) {
+    filter.category = category;
+  }
+
+  const items = await Model.find(filter)
+    .sort({ updated_at: -1 })
+    .limit(Number(limit));
+
+  res.json(items);
 });
 
-/**
- * GET /products/in/:id or /products/us/:id
- */
+// GET detail
 router.get("/:region/:id", async (req, res) => {
-  try {
-    const { region, id } = req.params;
-    const Model = getModel(region.toLowerCase());
+  const { region, id } = req.params;
+  const Model = getModel(region.toLowerCase());
 
-    if (!Model) return res.status(400).json({ error: "Invalid region" });
+  const item = await Model.findOne({ id });
 
-    const item = await Model.findOne({ id });
-
-    if (!item) return res.json(null);
-
-    res.json(item);
-  } catch (err) {
-    console.error("PRODUCT DETAIL ERROR:", err);
-    res.status(500).json({ error: "Server error" });
-  }
+  res.json(item);
 });
 
 export default router;
