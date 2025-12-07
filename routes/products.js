@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
   const filter = {};
   if (category) filter.category = category;
 
-  const items = await Model.find(filter).limit(100);
+  const items = await Model.find(filter).limit(500);
   res.json(items);
 });
 
