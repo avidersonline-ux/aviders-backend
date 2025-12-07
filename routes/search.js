@@ -1,4 +1,4 @@
-iimport express from "express";
+import express from "express";
 import ProductIN from "../models/ProductIN.js";
 import ProductUS from "../models/ProductUS.js";
 
