@@ -1,11 +1,24 @@
 import express from "express";
-import PriceHistory from "../models/PriceHistory.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
+const PriceHistory = mongoose.connection.collection("price_history");
 
-router.get("/:id", async (req, res) => {
-  const history = await PriceHistory.findOne({ id: req.params.id });
-  res.json(history || { id: req.params.id, history: [] });
+router.get("/:asin", async (req, res) => {
+  const asin = req.params.asin;
+  const region = req.query.region || "in";
+
+  const history = await PriceHistory
+    .find({ asin, region })
+    .sort({ date: 1 })
+    .toArray();
+
+  return res.json({
+    asin,
+    region,
+    count: history.length,
+    history,
+  });
 });
 
 export default router;
