@@ -5,12 +5,12 @@ import mongoose from "mongoose";
 
 const router = express.Router();
 
-// Queue for background indexing handled by aviders-sync
+// Queue collection (used by aviders-sync worker)
 const queue = mongoose.connection.collection("sync_queue");
 
 //
 // -------------------------------------------------------
-// GET /search — return cached DB results + add to queue
+// GET /search?q=xxx — return cached + add to sync queue
 // -------------------------------------------------------
 router.get("/", async (req, res) => {
   try {
@@ -19,15 +19,18 @@ router.get("/", async (req, res) => {
 
     if (!q) return res.json([]);
 
-    // Choose correct Mongo collection
     const Model = region === "us" ? ProductUS : ProductIN;
 
-    // 1️⃣ Return cached DB results immediately
+    // ⭐ IMPROVED SEARCH — match title INCLUDES keyword OR category OR brand
     const cached = await Model.find({
-      title: new RegExp(q, "i"),
+      $or: [
+        { title: new RegExp(q, "i") },
+        { category: new RegExp(q, "i") },
+        { brand: new RegExp(q, "i") }
+      ]
     }).limit(50);
 
-    // 2️⃣ Add keyword into sync queue
+    // Add keyword to queue for background indexing
     await queue.insertOne({
       keyword: q,
       region,
@@ -44,7 +47,7 @@ router.get("/", async (req, res) => {
 
 //
 // -------------------------------------------------------
-// POST /search/trigger — called by Flutter if no DB results
+// POST /search/trigger — called by Flutter if no cached results
 // -------------------------------------------------------
 router.post("/trigger", async (req, res) => {
   try {
@@ -56,7 +59,7 @@ router.post("/trigger", async (req, res) => {
 
     const reg = region === "us" ? "us" : "in";
 
-    // Insert into the same queue aviders-sync worker reads
+    // Insert into sync queue again
     await queue.insertOne({
       keyword,
       region: reg,
