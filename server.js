@@ -7,6 +7,7 @@ import productsRoute from "./routes/products.js";
 import searchRoute from "./routes/search.js";
 import priceRoute from "./routes/price.js";
 import categoriesRoute from "./routes/categories.js";
+import priceHistoryRoute from "./routes/price_history.js";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use("/products", productsRoute);
 app.use("/search", searchRoute);
 app.use("/price", priceRoute);
 app.use("/categories", categoriesRoute);
+app.use("/price-history", priceHistoryRoute);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
