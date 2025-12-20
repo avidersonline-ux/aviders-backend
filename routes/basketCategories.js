@@ -1,5 +1,7 @@
 import express from "express";
-import Product from "../models/Product.js"; // adjust if name differs
+import ProductIN from "../models/ProductIN.js";
+import ProductUS from "../models/ProductUS.js";
+
 
 const router = express.Router();
 
