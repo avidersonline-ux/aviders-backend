@@ -27,7 +27,7 @@ app.use("/price", priceRoute);
 app.use("/categories", categoriesRoute);
 app.use("/price-history", priceHistoryRoute);
 app.use("/basket-products", basketProductsRoutes);
-app.use(basketCategories);
+app.use("/basket-categories", basketCategories);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
