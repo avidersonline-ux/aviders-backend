@@ -5,29 +5,41 @@ import ProductUS from "../models/ProductUS.js";
 const router = express.Router();
 
 /**
- * GET ALL CATEGORIES (NO PAGINATION)
- * /basket/categories?region=in
+ * Pick model by region
  */
-router.get("/basket/categories", async (req, res) => {
-  try {
-    const region = req.query.region || "in";
-    const Model = region === "us" ? ProductUS : ProductIN;
+function getModel(region) {
+  return region === "us" ? ProductUS : ProductIN;
+}
 
-    const categories = await Model.aggregate([
-      { $group: { _id: "$category" } },
-      { $sort: { _id: 1 } },
-    ]);
+/**
+ * GET /basket-categories
+ * Returns ONLY categories where basketEligible = true
+ *
+ * Query:
+ * - region=in|us (default: in)
+ */
+router.get("/", async (req, res) => {
+  try {
+    const { region = "in" } = req.query;
+    const Model = getModel(region);
+
+    const categories = await Model.distinct("category", {
+      basketEligible: true,
+      category: { $exists: true, $ne: "" },
+    });
 
     res.json({
-      categories: categories
-        .map(c => c._id)
-        .filter(Boolean),
+      ok: true,
+      total: categories.length,
+      categories: categories.sort(),
     });
   } catch (err) {
-    console.error("Category fetch error", err);
-    res.status(500).json({ message: "Failed to load categories" });
+    console.error("❌ basket-categories error:", err);
+    res.status(500).json({
+      ok: false,
+      error: "Failed to load basket categories",
+    });
   }
 });
 
 export default router;
-
