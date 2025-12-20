@@ -2,7 +2,6 @@ import express from "express";
 import ProductIN from "../models/ProductIN.js";
 import ProductUS from "../models/ProductUS.js";
 
-
 const router = express.Router();
 
 /**
@@ -12,9 +11,9 @@ const router = express.Router();
 router.get("/basket/categories", async (req, res) => {
   try {
     const region = req.query.region || "in";
+    const Model = region === "us" ? ProductUS : ProductIN;
 
-    const categories = await Product.aggregate([
-      { $match: { region } },
+    const categories = await Model.aggregate([
       { $group: { _id: "$category" } },
       { $sort: { _id: 1 } },
     ]);
@@ -31,3 +30,4 @@ router.get("/basket/categories", async (req, res) => {
 });
 
 export default router;
+
