@@ -13,14 +13,16 @@ function getModel(region) {
 
 /**
  * GET /basket-products
- * Basket-only products (basketEligible = true)
  *
  * Query params:
- * - region=in|us (default: in)
- * - page (default: 1)
- * - limit (default: 20)
- * - category (optional)
- * - search (optional)
+ * - region=in|us        (default: in)
+ * - page=1             (default: 1)
+ * - limit=20           (default: 20)
+ * - category=Honey     (optional, exact match)
+ * - search=soap        (optional, title/brand search)
+ *
+ * HARD RULE:
+ * - basketEligible = true ONLY
  */
 router.get("/", async (req, res) => {
   try {
@@ -32,35 +34,42 @@ router.get("/", async (req, res) => {
       search,
     } = req.query;
 
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
+    const pageNum = Math.max(parseInt(page, 10), 1);
+    const limitNum = Math.min(parseInt(limit, 10), 100);
     const skip = (pageNum - 1) * limitNum;
 
     const Model = getModel(region);
 
-    // 🔒 HARD RULE: basketEligible = true
+    // 🔒 HARD FILTER
     const filter = {
       basketEligible: true,
     };
 
-    // Optional category filter
-    if (category) {
+    // ✅ CATEGORY FILTER (exact match)
+    if (category && category !== "All") {
       filter.category = category;
     }
 
-    // Optional search
+    // ✅ SEARCH FILTER (title OR brand)
     if (search && search.trim().length > 0) {
-      filter.title = { $regex: search.trim(), $options: "i" };
+      filter.$or = [
+        { title: { $regex: search.trim(), $options: "i" } },
+        { brand: { $regex: search.trim(), $options: "i" } },
+      ];
     }
 
+    // 🔍 QUERY
     const products = await Model.find(filter)
-      .sort({ updated_at: -1 }) // newest first
+      .sort({ updatedAt: -1 }) // newest first
       .skip(skip)
-      .limit(limitNum);
+      .limit(limitNum)
+      .lean();
 
     const total = await Model.countDocuments(filter);
 
     res.json({
+      ok: true,
+      region,
       page: pageNum,
       limit: limitNum,
       total,
@@ -68,8 +77,14 @@ router.get("/", async (req, res) => {
     });
   } catch (err) {
     console.error("❌ basket-products error:", err);
-    res.status(500).json({ error: "Failed to load basket products" });
+    res.status(500).json({
+      ok: false,
+      error: "Failed to load basket products",
+    });
   }
 });
+
+export default router;
+
 
 export default router;
