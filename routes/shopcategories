@@ -1,0 +1,34 @@
+import express from "express";
+import ProductIN from "../models/ProductIN.js";
+import ProductUS from "../models/ProductUS.js";
+
+const router = express.Router();
+
+function getModel(region) {
+  return region === "us" ? ProductUS : ProductIN;
+}
+
+/**
+ * GET /basket-categories
+ * Returns ONLY categories that have basketEligible=true products
+ */
+router.get("/", async (req, res) => {
+  try {
+    const region = req.query.region || "in";
+    const Model = getModel(region);
+
+    const categories = await Model.distinct("category", {
+      basketEligible: false,
+      category: { $ne: null },
+    });
+
+    res.json({
+      categories: categories.sort(),
+    });
+  } catch (err) {
+    console.error("❌ basket-categories error:", err);
+    res.status(500).json({ error: "Failed to load basket categories" });
+  }
+});
+
+export default router;
