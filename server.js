@@ -10,7 +10,7 @@ import categoriesRoute from "./routes/categories.js";
 import priceHistoryRoute from "./routes/price_history.js";
 import basketProductsRoutes from "./routes/basket_products.js";
 import basketCategories from "./routes/basketCategories.js";
-import basketCategories from "./routes/shopcategories.js";
+import shopcategories from "./routes/shopcategories.js";
 
 dotenv.config();
 
@@ -29,7 +29,7 @@ app.use("/categories", categoriesRoute);
 app.use("/price-history", priceHistoryRoute);
 app.use("/basket-products", basketProductsRoutes);
 app.use("/basket-categories", basketCategories);
-app.use("/basket-categories", shopcategories);
+app.use("/shop-categories", shopcategories);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
