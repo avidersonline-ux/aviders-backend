@@ -9,25 +9,27 @@ function getModel(region) {
 }
 
 /**
- * GET /basket-categories
- * Returns ONLY categories that have basketEligible=true products
+ * GET /shop/categories
+ * Categories for SHOP (non-basket products only)
  */
 router.get("/", async (req, res) => {
   try {
-    const region = req.query.region || "in";
+    const region = req.query.region === "us" ? "us" : "in";
     const Model = getModel(region);
 
     const categories = await Model.distinct("category", {
-      basketEligible: false,
+      basketEligible: { $ne: true },   // ✅ THIS IS THE RULE
       category: { $ne: null },
     });
 
     res.json({
+      region,
+      total: categories.length,
       categories: categories.sort(),
     });
   } catch (err) {
-    console.error("❌ basket-categories error:", err);
-    res.status(500).json({ error: "Failed to load basket categories" });
+    console.error("❌ shop-categories error:", err);
+    res.status(500).json({ error: "Failed to load shop categories" });
   }
 });
 
