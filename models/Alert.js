@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const AlertSchema = new mongoose.Schema({
   asin: { type: String, required: true, index: true },
@@ -9,7 +9,6 @@ const AlertSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// Avoid duplicate alerts for same product/user
 AlertSchema.index({ asin: 1, email: 1 }, { unique: true });
 
-module.exports = mongoose.model('PriceAlert', AlertSchema);
+export default mongoose.model('PriceAlert', AlertSchema);
