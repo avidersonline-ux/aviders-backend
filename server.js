@@ -11,6 +11,7 @@ import priceHistoryRoute from "./routes/price_history.js";
 import basketProductsRoutes from "./routes/basket_products.js";
 import basketCategories from "./routes/basketCategories.js";
 import shopCategories from "./routes/shopcategories.js";
+import alertsRoute from "./routes/alerts.js";
 
 
 
@@ -32,6 +33,7 @@ app.use("/price-history", priceHistoryRoute);
 app.use("/basket-products", basketProductsRoutes);
 app.use("/basket-categories", basketCategories);
 app.use("/shopcategories", shopCategories);
+app.use("/price-alerts", alertsRoute);
 
 
 
